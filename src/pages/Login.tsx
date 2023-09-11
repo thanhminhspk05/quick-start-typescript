@@ -12,13 +12,14 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import axios from 'axios';
+import Cookie from 'js-cookie';
 import * as React from 'react';
-import { useCookies } from 'react-cookie';
+import { useNavigate } from 'react-router-dom';
 
 const defaultTheme = createTheme();
 
 const Login = () => {
-  const [cookies, setCookie] = useCookies(['access_token', 'refresh_token']);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -29,13 +30,19 @@ const Login = () => {
       password: formData.get('password'),
     });
 
-    console.log({ response });
+    const { user, accessToken } = response.data;
 
-    let expires = new Date();
-    setCookie('access_token', response.data.accessToken, { path: '/', expires });
+    if (accessToken) {
+      Cookie.set('ACCESS_TOKEN', JSON.stringify(accessToken), { expires: 1000 });
+
+      const userInfo = user;
+      if (userInfo) {
+        Cookie.set('USER_INFO', JSON.stringify(userInfo), { expires: 1000 });
+      }
+
+      navigate('/dashboard');
+    }
   };
-
-  console.log(cookies);
 
   return (
     <ThemeProvider theme={defaultTheme}>
