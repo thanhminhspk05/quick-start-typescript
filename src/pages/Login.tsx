@@ -11,19 +11,31 @@ import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import axios from 'axios';
 import * as React from 'react';
+import { useCookies } from 'react-cookie';
 
 const defaultTheme = createTheme();
 
 const Login = () => {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const [cookies, setCookie] = useCookies(['access_token', 'refresh_token']);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
+    const formData = new FormData(event.currentTarget);
+
+    const response = await axios.post('http://localhost:8000/api/v1/login', {
+      email: formData.get('email'),
+      password: formData.get('password'),
     });
+
+    console.log({ response });
+
+    let expires = new Date();
+    setCookie('access_token', response.data.accessToken, { path: '/', expires });
   };
+
+  console.log(cookies);
 
   return (
     <ThemeProvider theme={defaultTheme}>
